@@ -95,8 +95,7 @@ if ! zstyle -t ':prezto:module:git:alias' skip; then
   alias gfa='git fetch --all'
   alias gfc='git clone'
   alias gfcr='git clone --recurse-submodules'
-  alias gfm='git pull'
-  alias gfma='git pull --autostash'
+  alias gfm='git pull --ff-only'
   alias gfr='git pull --rebase'
   alias gfra='git pull --rebase --autostash'
 
