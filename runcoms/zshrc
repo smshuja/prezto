@@ -12,18 +12,31 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+
+# export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
+
 # Customize to your needs...
 
 alias subl='/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl'
+alias be='bundle exec'
+alias ber='bundle exec rake'
+alias berss='bundle exec rails s -p 3030 -b "ssl://0.0.0.0:3030?key=./support/dev-ssl/lvh.me.key&cert=./support/dev-ssl/lvh.me.pem"'
+alias bers='bundle exec rails s -p 3030'
+alias rcc="git ls-files -m | xargs ls -1 2>/dev/null | grep '\.rb$' | xargs bundle exec rubocop"
+alias ubers="bundle && yarn install --check-files && bers"
+alias uberss="bundle && yarn install --check-files && berss"
+alias lhstart="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psy"
+alias lhstarts="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psys"
+alias rtest="bundle exec rake db:drop db:create db:structure:load RAILS_ENV=test"
+alias lhbackup="heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump \"../db-dumps/$(date +%F-%H_%M).live.dump\""
 
-eval "$(rbenv init -)"
 eval "$(nodenv init -)"
 
 export PATH=$PATH:~/Library/Python/3.7/bin
 source $(brew --prefix autoenv)/activate.sh
 
 alias ascr='mkdir -p ~/Desktop/asciinema && asciinema rec ~/Desktop/asciinema/recording-$(date +%F_%T).cast'
-alias gdone="git branch --merged | sed '/  master$/d' | sed '/  develop$/d' | sed '/^\** master$/d' | sed '/^\** develop$/d' >| /tmp/merged-branches && vi /tmp/merged-branches && xargs git branch -d </tmp/merged-branches"
+alias gdone="git branch --merged | sed '/  master$/d' | sed '/  develop$/d' | sed '/  review$/d' | sed '/^\** master$/d' | sed '/^\** develop$/d'| sed '/^\** review$/d' >| /tmp/merged-branches && vi /tmp/merged-branches && xargs git branch -d </tmp/merged-branches"
 # tabtab source for serverless package
 # uninstall by removing these lines or running `tabtab uninstall serverless`
 [[ -f /Users/shuja/.nodenv/versions/8.0.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh ]] && . /Users/shuja/.nodenv/versions/8.0.0/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh
@@ -34,14 +47,10 @@ alias gdone="git branch --merged | sed '/  master$/d' | sed '/  develop$/d' | se
 # uninstall by removing these lines or running `tabtab uninstall slss`
 [[ -f /Users/shuja/.nodenv/versions/8.0.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.zsh ]] && . /Users/shuja/.nodenv/versions/8.0.0/lib/node_modules/serverless/node_modules/tabtab/.completions/slss.zsh. "/Users/shuja/.acme.sh/acme.sh.env"
 
-# Add environment variable COCOS_CONSOLE_ROOT for cocos2d-x
-export COCOS_CONSOLE_ROOT="/Users/shuja/Downloads/cocos2d-x-3.17.2/tools/cocos2d-console/bin"
-export PATH=$COCOS_CONSOLE_ROOT:$PATH
+eval "$(rbenv init -)"
 
-# Add environment variable COCOS_X_ROOT for cocos2d-x
-export COCOS_X_ROOT="/Users/shuja/Downloads"
-export PATH=$COCOS_X_ROOT:$PATH
+bindkey -M viins '^r' history-incremental-search-backward
+bindkey -M vicmd '^r' history-incremental-search-backward
+export PATH="/usr/local/opt/postgresql@11/bin:$PATH"
 
-# Add environment variable COCOS_TEMPLATES_ROOT for cocos2d-x
-export COCOS_TEMPLATES_ROOT="/Users/shuja/Downloads/cocos2d-x-3.17.2/templates"
-export PATH=$COCOS_TEMPLATES_ROOT:$PATH
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
