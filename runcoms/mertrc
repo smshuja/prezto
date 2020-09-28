@@ -1,0 +1,35 @@
+psys:
+  root: "~/Projects/gitlab/psychometrics"
+  launch_strategy: in_place
+  layout:
+    tabs:
+      -
+        layout:
+          -
+            - rorc
+            - rordm
+      -
+        layout:
+          -
+            - berss
+          -
+            - be sidekiq
+            - bin/webpack-dev-server
+
+psy:
+  root: "~/Projects/gitlab/psychometrics"
+  launch_strategy: in_place
+  layout:
+    tabs:
+      -
+        layout:
+          -
+            - rorc
+            - rordm
+      -
+        layout:
+          -
+            - bers
+          -
+            - be sidekiq
+            - bin/webpack-dev-server
