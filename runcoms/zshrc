@@ -13,7 +13,10 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 
-# export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
+eval "$(direnv hook zsh)"
+
+
+export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 
 # Customize to your needs...
 
@@ -28,12 +31,15 @@ alias uberss="bundle && yarn install --check-files && berss"
 alias lhstart="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psy"
 alias lhstarts="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psys"
 alias rtest="bundle exec rake db:drop db:create db:structure:load RAILS_ENV=test"
-alias lhbackup="heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump \"../db-dumps/$(date +%F-%H_%M).live.dump\""
+# alias lhbackup="heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump \"../db-dumps/$(date +%F-%H_%M).live.dump\""
+
+function lhbackup {
+  heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump "../db-dumps/$(date +%F-%H_%M).live.dump"
+}
 
 eval "$(nodenv init -)"
 
 export PATH=$PATH:~/Library/Python/3.7/bin
-source $(brew --prefix autoenv)/activate.sh
 
 alias ascr='mkdir -p ~/Desktop/asciinema && asciinema rec ~/Desktop/asciinema/recording-$(date +%F_%T).cast'
 alias gdone="git branch --merged | sed '/  master$/d' | sed '/  develop$/d' | sed '/  review$/d' | sed '/^\** master$/d' | sed '/^\** develop$/d'| sed '/^\** review$/d' >| /tmp/merged-branches && vi /tmp/merged-branches && xargs git branch -d </tmp/merged-branches"
