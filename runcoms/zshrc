@@ -17,24 +17,93 @@ eval "$(direnv hook zsh)"
 
 
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
+export KUBE_EDITOR="vim"
 
 # Customize to your needs...
 
 alias subl='/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl'
 alias be='bundle exec'
 alias ber='bundle exec rake'
-alias berss='bundle exec rails s -p 3030 -b "ssl://0.0.0.0:3030?key=./support/dev-ssl/lvh.me.key&cert=./support/dev-ssl/lvh.me.pem"'
+alias berss='bundle exec rails s -p 3030 -b "ssl://0.0.0.0:3030?key=./support/dev-ssl/ttedev.me.key&cert=./support/dev-ssl/ttedev.me.pem"'
 alias bers='bundle exec rails s -p 3030'
 alias rcc="git ls-files -m | xargs ls -1 2>/dev/null | grep '\.rb$' | xargs bundle exec rubocop"
-alias ubers="bundle && yarn install --check-files && bers"
-alias uberss="bundle && yarn install --check-files && berss"
-alias lhstart="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psy"
-alias lhstarts="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --check-files && mert start psys"
+alias elc="git ls-files -m | xargs ls -1 2>/dev/null | grep -E 'app\/frontend\/.*\.(js|ts|jsx|tsx)$' | xargs node_modules/eslint/bin/eslint.js --max-warnings=0 --fix"
+alias ubers="bundle && yarn install --pure-lockfile && bers"
+alias uberss="bundle && yarn install --pure-lockfile && berss"
+alias lhstart="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --pure-lockfile && mert start psy"
+alias lhstarts="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --pure-lockfile && mert start psys"
 alias rtest="bundle exec rake db:drop db:create db:structure:load RAILS_ENV=test"
+alias lhgitclean="git branch --merged master --no-color | grep -v master | grep -v review | grep -v develop | xargs git branch -d"
+function killports {
+  if [ -z "$1" ]
+  then
+    echo "No port specified"
+  else
+    sudo lsof -ti ":$1" | xargs kill -9
+  fi
+}
+function lhrestore {
+  set -v
+  if [ -z "$1" ]
+  then
+    database="mindmill_data"
+  else
+    database="$1"
+  fi
+  if [ -z "$2" ]
+  then
+    site="live"
+  else
+    site="$2"
+  fi
+  if [ -z "$3" ]
+  then
+    dump=`ls -t ~/Projects/gitlab/db-dumps/${site}/*.dump | head -1`
+  else
+    dump="$3"
+  fi
+  psql -d $database -c "DO \$\$ DECLARE \
+    r RECORD; \
+    BEGIN \
+        FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP \
+            EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; \
+        END LOOP; \
+    END \$\$;"
+
+  pg_restore --no-owner --no-acl -d $database < $dump
+  print "DONE"
+}
 # alias lhbackup="heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump \"../db-dumps/$(date +%F-%H_%M).live.dump\""
 
 function lhbackup {
-  heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump "../db-dumps/$(date +%F-%H_%M).live.dump"
+  set -v
+  declare -A sites
+  sites[live]="tte-lighthouse-prod"
+  sites[dev]="tte-lighthouse-develop"
+  sites[review]="tte-lighthouse"
+  sites[staging]="tte-lighthouse-staging"
+  sites[gotalent]="gotalent-ai"
+  if [ -z "$1" ]
+  then
+    site="live"
+  else
+    site="$1"
+  fi
+  app=${${${sites[$site]}:+${sites[$site]}}:-0}
+  if [ $app != 0 ]
+  then
+    print $app
+  else
+    print "invalid app"
+    return
+  fi
+  currentDir="`pwd`"
+  dumpDir="/Users/shuja/Projects/gitlab/db-dumps/${site}"
+  mkdir -p "${dumpDir}"
+  dump="${dumpDir}/$(date +%F-%H_%M).${site}.dump"
+  heroku pg:backups:capture --app $app && heroku pg:backups:download --app $app && mv "${currentDir}/latest.dump" $dump
+  print $dump
+  # heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump "../db-dumps/$(date +%F-%H_%M).live.dump"
 }
 
 eval "$(nodenv init -)"
@@ -59,4 +128,13 @@ bindkey -M viins '^r' history-incremental-search-backward
 bindkey -M vicmd '^r' history-incremental-search-backward
 export PATH="/usr/local/opt/postgresql@11/bin:$PATH"
 
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:/usr/local/opt/postgresql@11/bin:$HOME/.zprezto/scripts:$PATH"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
+
+export KUBE_PS1_NS_ENABLE=false
+export KUBE_PS1_SYMBOL_ENABLE=false
+kube_ps1_autohide() { kube_ps1 | sed 's/^(.*}N\/A%.*:.*}N\/A%.*)$//' }
+PROMPT='$(kube_ps1_autohide)'$PROMPT
