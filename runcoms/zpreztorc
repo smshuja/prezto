@@ -45,7 +45,8 @@ zstyle ':prezto:load' pmodule \
   'git' \
   'history-substring-search' \
   'rails' \
-  'rsync'
+  'rsync' \
+  'kubernetes'
 
 #
 # Autosuggestions
