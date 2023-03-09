@@ -1,5 +1,8 @@
 # Fig pre block. Keep at the top of this file.
 [[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
+
+source /opt/homebrew/opt/kube-ps1/share/kube-ps1.sh
+PS1='$(kube_ps1)'$PS1
 #
 # Executes commands at the start of an interactive session.
 #
@@ -37,10 +40,11 @@ alias lhstarts="cd ~/Projects/gitlab/psychometrics && bundle && yarn install --p
 alias rtest="bundle exec rake db:drop db:create db:structure:load RAILS_ENV=test"
 alias lhgitclean="git branch --merged master --no-color | grep -v master | grep -v review | grep -v develop | xargs git branch -d"
 # alias lhbuild="DT='date +%Y%m%d_%H%M' && docker build -t lhcontregistry.azurecr.io/psychometrics:$DT . && docker push lhcontregistry.azurecr.io/psychometrics:$DT"
+alias tf="terraform"
 
 function lhbuild {
   DT=`date +%Y%m%d_%H%M`
-  docker build -t lhcontregistry.azurecr.io/psychometrics:$DT . && docker push lhcontregistry.azurecr.io/psychometrics:$DT
+  docker buildx build --platform linux/amd64 -t lhcontregistry.azurecr.io/psychometrics:$DT . && docker push lhcontregistry.azurecr.io/psychometrics:$DT
 }
 
 function killports {
@@ -119,6 +123,8 @@ eval "$(nodenv init -)"
 
 export PATH=$PATH:~/Library/Python/3.7/bin
 
+export PATH=$PATH:~/bin
+
 alias ascr='mkdir -p ~/Desktop/asciinema && asciinema rec ~/Desktop/asciinema/recording-$(date +%F_%T).cast'
 alias gdone="git branch --merged | sed '/  master$/d' | sed '/  develop$/d' | sed '/  review$/d' | sed '/^\** master$/d' | sed '/^\** develop$/d'| sed '/^\** review$/d' >| /tmp/merged-branches && vi /tmp/merged-branches && xargs git branch -d </tmp/merged-branches"
 # tabtab source for serverless package
@@ -141,7 +147,6 @@ export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:/usr/lo
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
 
 export KUBE_PS1_NS_ENABLE=false
 export KUBE_PS1_SYMBOL_ENABLE=false
@@ -155,6 +160,7 @@ alias gam="/Users/shuja/bin/gamadv-xtd3/gam"
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 
 # bun completions
 [ -s "/Users/shuja/.bun/_bun" ] && source "/Users/shuja/.bun/_bun"
@@ -162,6 +168,24 @@ eval "$(pyenv init -)"
 # bun
 export BUN_INSTALL="/Users/shuja/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"
+
+export MH_OUTGOING_SMTP="/Users/shuja/Projects/gitlab/mailhog-smtp.json"
 
 # Fig post block. Keep at the bottom of this file.
 [[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.post.zsh"
+
+. /opt/homebrew/opt/asdf/libexec/asdf.sh
+
+# append completions to fpath
+fpath=(${ASDF_DIR}/completions $fpath)
+# initialise completions with ZSH's compinit
+autoload -Uz compinit && compinit
+
+# 1Password auto-completion
+eval "$(op completion zsh)"; compdef _op op
+
+if [[ -s "${ZDOTDIR:-$HOME}/.zshrc_local.sh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zshrc_local.sh"
+fi
+
