@@ -14,7 +14,7 @@ psys:
             - berss
           -
             - be sidekiq
-            - bin/webpack-dev-server
+            - SSL_KEY="./support/dev-ssl/star_ttedev.me.key" SSL_CERT="./support/dev-ssl/star_ttedev.me.pem" SSL=true ./bin/vite dev
 
 psy:
   root: "~/Projects/gitlab/psychometrics"
@@ -32,4 +32,4 @@ psy:
             - bers
           -
             - be sidekiq
-            - bin/webpack-dev-server
+            - SSL_KEY="./support/dev-ssl/star_ttedev.me.key" SSL_CERT="./support/dev-ssl/star_ttedev.me.pem" SSL=true ./bin/vite dev

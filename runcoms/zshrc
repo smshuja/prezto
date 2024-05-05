@@ -75,6 +75,7 @@ function lhrestore {
   else
     dump="$3"
   fi
+  print "======== Deleting all tables"
   psql -d $database -c "DO \$\$ DECLARE \
     r RECORD; \
     BEGIN \
@@ -82,9 +83,11 @@ function lhrestore {
             EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; \
         END LOOP; \
     END \$\$;"
-
+  print "======== Deleting all tables - Done"
+  print "======== Restoring database"
+  sleep 5
   pg_restore --no-owner --no-acl -d $database < $dump
-  print "DONE"
+  print "======== Restoring database - Done"
 }
 # alias lhbackup="heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump \"../db-dumps/$(date +%F-%H_%M).live.dump\""
 
@@ -114,7 +117,7 @@ function lhbackup {
   dumpDir="/Users/shuja/Projects/gitlab/db-dumps/${site}"
   mkdir -p "${dumpDir}"
   dump="${dumpDir}/$(date +%F-%H_%M).${site}.dump"
-  heroku pg:backups:capture --app $app && heroku pg:backups:download --app $app && mv "${currentDir}/latest.dump" $dump
+  heroku pg:backups:download --app $app && mv "${currentDir}/latest.dump" $dump
   print $dump
   # heroku pg:backups:capture --app tte-lighthouse-prod && heroku pg:backups:download --app tte-lighthouse-prod && mv latest.dump "../db-dumps/$(date +%F-%H_%M).live.dump"
 }
@@ -189,3 +192,6 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zshrc_local.sh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zshrc_local.sh"
 fi
 
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+export PUPPETEER_EXECUTABLE_PATH=`which chromium`
+alias gam="/Users/shuja/bin/gam/gam"
